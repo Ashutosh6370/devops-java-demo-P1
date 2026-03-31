@@ -1,20 +1,20 @@
-# DevOps CI/CD Pipeline - Java App
+# 🚀 DevOps CI/CD Pipeline - Java App
 
 ## 📌 Overview
 
-This project demonstrates a simple **CI/CD pipeline** for a Java application using Jenkins, Maven, Docker, and AWS.
-
-It covers the complete workflow from **code build → artifact creation → Docker image → deployment**.
+This project demonstrates a complete **CI/CD pipeline for a Java application** using DevOps tools.
+It covers **code build, testing, quality analysis, containerization, and image scanning**.
 
 ---
 
-## 🚀 Tech Stack
+## 🛠️ Tech Stack
 
 * Java 17
 * Maven 3.9
 * Jenkins
+* SonarQube
 * Docker
-* AWS (EC2 / EKS)
+* Trivy
 
 ---
 
@@ -42,6 +42,12 @@ java -jar target/devops-java-demo-P1.jar
 docker build -t ashutosh6370/devops-java-demo-P1 .
 ```
 
+### Push Image
+
+```
+docker push ashutosh6370/devops-java-demo-P1
+```
+
 ### Run Container
 
 ```
@@ -52,12 +58,28 @@ docker run -d -p 8080:8080 ashutosh6370/devops-java-demo-P1
 
 ## 🔄 CI/CD Pipeline Flow
 
-1. Code pushed to GitHub
-2. Jenkins triggers build
-3. Maven builds JAR
-4. Docker image is created
-5. Image pushed to Docker Hub
-6. Deployment on AWS
+```
+Developer commits code  
+Code pushed to GitHub  
+GitHub webhook triggers Jenkins  
+
+Jenkins starts build  
+Maven performs:
+  - Code Compile  
+  - Unit Test  
+
+SonarQube performs Code Quality Checks  
+
+Maven builds the JAR  
+
+Docker:
+  - Build Docker Image  
+  - Push Image to Docker Hub  
+
+Trivy performs Docker Image Scan  
+
+Docker Container is Deployed
+```
 
 ---
 
@@ -69,6 +91,15 @@ docker run -d -p 8080:8080 ashutosh6370/devops-java-demo-P1
 ├── Dockerfile
 ├── Jenkinsfile
 ```
+
+---
+
+## 🔐 Key Features
+
+* Automated CI/CD pipeline using Jenkins
+* Code quality analysis using SonarQube
+* Docker image build and push to Docker Hub
+* Container image security scanning using Trivy
 
 ---
 
