@@ -2,13 +2,13 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3.9'      // Make sure this is configured in Jenkins
+        maven 'Maven3.9'
         jdk 'Java17'
     }
 
     environment {
-        DOCKER_IMAGE = "devops-demo"
-        CONTAINER_NAME = "devops-container"
+        DOCKER_IMAGE = "ashutosh6370/devops-java-demo-P1"
+        CONTAINER_NAME = "devops-java-demo-P1"       
     }
 
     stages {
@@ -19,15 +19,9 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Maven Build & Unit Test') {
             steps {
-                sh 'mvn clean install -DskipTests'
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh 'mvn test'
+                sh 'mvn clean verify'
             }
         }
 
@@ -39,17 +33,45 @@ pipeline {
             }
         }
 
-        stage('Quality Gate') {
+        stage('Dependency Check (OWASP)') {
             steps {
-                timeout(time: 2, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                sh '''
+                dependency-check.sh \
+                --project "devops-java-demo-P1" \
+                --scan . \
+                --format HTML \
+                --out dependency-check-report
+                '''
+            }
+        }
+
+        stage('Maven Package') {
+            steps {
+                sh 'mvn package -DskipTests'
+            }
+        }
+
+        stage('Docker Build & Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-cred',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
+                )]) {
+                    sh '''
+                    docker build -t $DOCKER_IMAGE .
+                    echo $PASS | docker login -u $USER --password-stdin
+                    docker push $DOCKER_IMAGE
+                    '''
                 }
             }
         }
 
-        stage('Docker Build') {
+        stage('Trivy Scan') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                sh '''
+                trivy image --severity HIGH,CRITICAL $DOCKER_IMAGE
+                '''
             }
         }
 
@@ -65,22 +87,14 @@ pipeline {
     }
 
     post {
-
         success {
-            echo "✅ SUCCESS: Application built and deployed successfully!"
+            echo "SUCCESS: Full DevSecOps pipeline executed successfully!"
         }
-
         failure {
-            echo "❌ FAILURE: Pipeline failed. Check logs for details."
+            echo "FAILURE: Pipeline failed. Check logs."
         }
-
         always {
-            echo "📌 Pipeline execution finished."
-
-            // Cleanup (important for EC2 disk space)
-            sh '''
-            docker system prune -f || true
-            '''
+            sh 'docker system prune -f || true'
         }
     }
 }
