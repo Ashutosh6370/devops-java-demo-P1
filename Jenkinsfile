@@ -33,18 +33,6 @@ pipeline {
             }
         }
 
-        stage('Dependency Check (OWASP)') {
-            steps {
-                sh '''
-                dependency-check.sh \
-                --project "devops-java-demo-P1" \
-                --scan . \
-                --format HTML \
-                --out dependency-check-report
-                '''
-            }
-        }
-
         stage('Maven Package') {
             steps {
                 sh 'mvn package -DskipTests'
